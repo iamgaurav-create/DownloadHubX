@@ -256,7 +256,7 @@ app.post('/api/fetch-details', (req, res) => {
 
   const isWindows = process.platform === 'win32';
   const ytDlpPath = path.join(__dirname, isWindows ? 'yt-dlp.exe' : 'yt-dlp');
-  const ytDlp = spawn(ytDlpPath, ['--dump-json', '--extractor-args', 'youtube:player_client=android', url], getSpawnOptions());
+  const ytDlp = spawn(ytDlpPath, ['--dump-json', '--extractor-args', 'youtube:player_client=ios', url], getSpawnOptions());
 
   let data = '';
   let errorOutput = '';
@@ -326,7 +326,7 @@ app.get('/api/playlist-details', (req, res) => {
     '--dump-json',
     '--skip-download',
     '--extractor-args',
-    'youtube:player_client=android',
+    'youtube:player_client=ios',
     playlistUrl
   ];
 
@@ -414,7 +414,7 @@ app.get('/api/download', (req, res) => {
   args.push('--file-access-retries', '20');
   
   // Bypass YouTube datacenter bot protection
-  args.push('--extractor-args', 'youtube:player_client=android');
+  args.push('--extractor-args', 'youtube:player_client=ios');
   
   addFfmpegLocation(args);
   args.push(url);
@@ -486,7 +486,7 @@ app.get('/api/download-playlist', (req, res) => {
     '--file-access-retries',
     '20',
     '--extractor-args',
-    'youtube:player_client=android',
+    'youtube:player_client=ios',
     '-o',
     outputTemplate
   ];
