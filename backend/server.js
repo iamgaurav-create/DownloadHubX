@@ -4,18 +4,14 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const ffmpegPath = require('ffmpeg-static');
+const archiver = require('archiver');
 
 const app = express();
-const PORT = 3001;
-
-app.use(express.static(path.join(process.cwd(), "../frontend/dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "../frontend/dist/index.html"));
-});
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+
 const frontendDist = path.join(__dirname, '../frontend/dist');
 const frontendRoot = path.join(__dirname, '../frontend');
 app.use(express.static(fs.existsSync(frontendDist) ? frontendDist : frontendRoot));
@@ -258,7 +254,8 @@ app.post('/api/fetch-details', (req, res) => {
     return res.status(400).json({ error: 'URL is required' });
   }
 
-  const ytDlpPath = path.join(__dirname, 'yt-dlp.exe');
+  const isWindows = process.platform === 'win32';
+  const ytDlpPath = path.join(__dirname, isWindows ? 'yt-dlp.exe' : 'yt-dlp');
   const ytDlp = spawn(ytDlpPath, ['--dump-json', url], getSpawnOptions());
 
   let data = '';
@@ -320,7 +317,8 @@ app.get('/api/playlist-details', (req, res) => {
   }
 
   const playlistUrl = normalizePlaylistUrl(String(url));
-  const ytDlpPath = path.join(__dirname, 'yt-dlp.exe');
+  const isWindows = process.platform === 'win32';
+  const ytDlpPath = path.join(__dirname, isWindows ? 'yt-dlp.exe' : 'yt-dlp');
 
   // Use --flat-playlist to get only metadata without extracting each video
   const args = [
@@ -398,7 +396,8 @@ app.get('/api/download', (req, res) => {
     return res.status(400).json({ error: 'URL, formatId, and ext are required' });
   }
 
-  const ytDlpPath = path.join(__dirname, 'yt-dlp.exe');
+  const isWindows = process.platform === 'win32';
+  const ytDlpPath = path.join(__dirname, isWindows ? 'yt-dlp.exe' : 'yt-dlp');
   const baseFilename = `download_${Date.now()}`;
   const outputTemplate = path.join(downloadsDir, `${baseFilename}.%(ext)s`);
 
@@ -466,7 +465,8 @@ app.get('/api/download-playlist', (req, res) => {
   }
 
   const playlistUrl = normalizePlaylistUrl(String(url));
-  const ytDlpPath = path.join(__dirname, 'yt-dlp.exe');
+  const isWindows = process.platform === 'win32';
+  const ytDlpPath = path.join(__dirname, isWindows ? 'yt-dlp.exe' : 'yt-dlp');
   const playlistId = `playlist_${Date.now()}`;
   const playlistDir = path.join(downloadsDir, playlistId);
   const zipPath = path.join(downloadsDir, `${playlistId}.zip`);
@@ -550,6 +550,16 @@ app.get('/api/download-playlist', (req, res) => {
   });
 });
 
+// Fallback route for SPA (MUST BE LAST)
+app.get("*", (req, res) => {
+  const distHtml = path.join(__dirname, "../frontend/dist/index.html");
+  if (fs.existsSync(distHtml)) {
+    res.sendFile(distHtml);
+  } else {
+    res.status(404).send("Production build not found. Run npm run build in frontend directory.");
+  }
+});
+
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
