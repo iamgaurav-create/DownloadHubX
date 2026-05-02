@@ -256,7 +256,14 @@ app.post('/api/fetch-details', (req, res) => {
 
   const isWindows = process.platform === 'win32';
   const ytDlpPath = path.join(__dirname, isWindows ? 'yt-dlp.exe' : 'yt-dlp');
-  const ytDlp = spawn(ytDlpPath, ['--dump-json', '--extractor-args', 'youtube:player_client=ios', url], getSpawnOptions());
+  
+  const args = ['--dump-json', '--extractor-args', 'youtube:player_client=ios', url];
+  const cookiesPath = path.join(__dirname, 'cookies.txt');
+  if (fs.existsSync(cookiesPath)) {
+    args.unshift('--cookies', cookiesPath);
+  }
+  
+  const ytDlp = spawn(ytDlpPath, args, getSpawnOptions());
 
   let data = '';
   let errorOutput = '';
@@ -329,6 +336,10 @@ app.get('/api/playlist-details', (req, res) => {
     'youtube:player_client=ios',
     playlistUrl
   ];
+  const cookiesPath = path.join(__dirname, 'cookies.txt');
+  if (fs.existsSync(cookiesPath)) {
+    args.unshift('--cookies', cookiesPath);
+  }
 
   const ytDlp = spawn(ytDlpPath, args, getSpawnOptions());
   let data = '';
@@ -416,6 +427,11 @@ app.get('/api/download', (req, res) => {
   // Bypass YouTube datacenter bot protection
   args.push('--extractor-args', 'youtube:player_client=ios');
   
+  const cookiesPath = path.join(__dirname, 'cookies.txt');
+  if (fs.existsSync(cookiesPath)) {
+    args.push('--cookies', cookiesPath);
+  }
+  
   addFfmpegLocation(args);
   args.push(url);
 
@@ -490,6 +506,11 @@ app.get('/api/download-playlist', (req, res) => {
     '-o',
     outputTemplate
   ];
+  
+  const cookiesPath = path.join(__dirname, 'cookies.txt');
+  if (fs.existsSync(cookiesPath)) {
+    args.push('--cookies', cookiesPath);
+  }
 
   if (items) {
     args.push('--playlist-items', String(items));
