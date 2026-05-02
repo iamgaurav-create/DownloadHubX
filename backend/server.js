@@ -256,7 +256,7 @@ app.post('/api/fetch-details', (req, res) => {
 
   const isWindows = process.platform === 'win32';
   const ytDlpPath = path.join(__dirname, isWindows ? 'yt-dlp.exe' : 'yt-dlp');
-  const ytDlp = spawn(ytDlpPath, ['--dump-json', url], getSpawnOptions());
+  const ytDlp = spawn(ytDlpPath, ['--dump-json', '--extractor-args', 'youtube:player_client=android', url], getSpawnOptions());
 
   let data = '';
   let errorOutput = '';
@@ -325,6 +325,8 @@ app.get('/api/playlist-details', (req, res) => {
     '--flat-playlist',
     '--dump-json',
     '--skip-download',
+    '--extractor-args',
+    'youtube:player_client=android',
     playlistUrl
   ];
 
@@ -411,6 +413,9 @@ app.get('/api/download', (req, res) => {
   // Help bypass Windows file lock errors (WinError 32) when ffmpeg or antivirus holds the handle
   args.push('--file-access-retries', '20');
   
+  // Bypass YouTube datacenter bot protection
+  args.push('--extractor-args', 'youtube:player_client=android');
+  
   addFfmpegLocation(args);
   args.push(url);
 
@@ -480,6 +485,8 @@ app.get('/api/download-playlist', (req, res) => {
     '--no-abort-on-error',
     '--file-access-retries',
     '20',
+    '--extractor-args',
+    'youtube:player_client=android',
     '-o',
     outputTemplate
   ];
