@@ -8,6 +8,12 @@ const ffmpegPath = require('ffmpeg-static');
 const app = express();
 const PORT = 3001;
 
+app.use(express.static(path.join(process.cwd(), "../frontend/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "../frontend/dist/index.html"));
+});
+
 app.use(cors());
 app.use(express.json());
 const frontendDist = path.join(__dirname, '../frontend/dist');
